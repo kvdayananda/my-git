@@ -1,0 +1,1 @@
+# Byte-compiled / optimized / DLL files\n__pycache__/\n*.py[cod]\n*$py.class\n\n# Distribution / packaging\nbuild/\ndist/\n*.egg-info/\n\n# Unit test / coverage\n.coverage\n.pytest_cache/\nhtmlcov/\n\n# Environments\n.env\n.venv\nenv/\nvenv/\nENV/\n\n# IDE & Editor\n.vscode/\n.idea/\n*.swp\n*.swo\n
