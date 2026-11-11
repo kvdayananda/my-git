@@ -1,64 +1,41 @@
-"""
-Unit Test Suite for my-git
-Validates core application models, pipeline logic, and error handling.
-"""
-
+"""Tests for Nexus Telemetry API."""
 import pytest
-from app.main import DataPipeline, Record
+from app.core import MetricRecord, TelemetryRegistry
+from app.main import ingest_payload, get_health_status, registry
 
 
-def test_record_creation_and_validation():
-    record = Record(id="test-1", title="Sample Record", priority="high")
-    record.validate()
-    assert record.id == "test-1"
-    assert record.title == "Sample Record"
-    assert record.priority == "high"
+def setup_function():
+    registry._records.clear()
 
 
-def test_record_validation_empty_title():
-    record = Record(id="test-2", title="", priority="medium")
-    with pytest.raises(ValueError, match="Record title cannot be empty"):
-        record.validate()
+def test_metric_validation():
+    valid = MetricRecord("auth-svc", 45.5, 512.0)
+    valid.validate()
+    assert valid.service_id == "auth-svc"
+
+    with pytest.raises(ValueError):
+        MetricRecord("", 10.0, 100.0).validate()
+
+    with pytest.raises(ValueError):
+        MetricRecord("svc", 150.0, 100.0).validate()
 
 
-def test_record_validation_invalid_priority():
-    record = Record(id="test-3", title="Valid Title", priority="urgent")
-    with pytest.raises(ValueError, match="Invalid priority"):
-        record.validate()
+def test_registry_averaging():
+    reg = TelemetryRegistry()
+    reg.record_metric(MetricRecord("api", 20.0, 200.0))
+    reg.record_metric(MetricRecord("api", 40.0, 220.0))
+    reg.record_metric(MetricRecord("worker", 90.0, 1000.0))
+
+    assert reg.compute_average_cpu("api") == 30.0
+    assert reg.compute_average_cpu("worker") == 90.0
+    assert reg.compute_average_cpu() == 50.0
 
 
-def test_pipeline_add_and_get():
-    pipeline = DataPipeline("TestApp")
-    record = Record(id="rec-1", title="Task 1", priority="low")
-    pipeline.add_record(record)
-    assert pipeline.count() == 1
-    retrieved = pipeline.get_record("rec-1")
-    assert retrieved is not None
-    assert retrieved.title == "Task 1"
+def test_ingest_and_health():
+    res = ingest_payload({"service_id": "gateway", "cpu_percent": 15.0, "memory_mb": 128.0})
+    assert res["status"] == "recorded"
+    assert res["average_cpu"] == 15.0
 
-
-def test_pipeline_duplicate_prevention():
-    pipeline = DataPipeline("TestApp")
-    record = Record(id="rec-dup", title="Duplicate Test")
-    pipeline.add_record(record)
-    with pytest.raises(ValueError, match="already exists"):
-        pipeline.add_record(record)
-
-
-def test_pipeline_filtering():
-    pipeline = DataPipeline("TestApp")
-    pipeline.add_record(Record(id="1", title="Low 1", priority="low"))
-    pipeline.add_record(Record(id="2", title="High 1", priority="high"))
-    pipeline.add_record(Record(id="3", title="High 2", priority="high"))
-
-    high_records = pipeline.filter_by_priority("high")
-    assert len(high_records) == 2
-    assert all(r.priority == "high" for r in high_records)
-
-
-def test_pipeline_json_serialization():
-    pipeline = DataPipeline("TestApp")
-    pipeline.add_record(Record(id="json-1", title="Serialization Test", priority="critical"))
-    json_output = pipeline.to_json()
-    assert "total_records" in json_output
-    assert "json-1" in json_output
+    health = get_health_status()
+    assert health["status"] == "operational"
+    assert health["total_metrics_recorded"] == 1
