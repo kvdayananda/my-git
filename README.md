@@ -1,46 +1,37 @@
-# my-git
+# CodeLens Project Architecture & Metric Inspector
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![Tests](https://img.shields.io/badge/tests-7%20passed-success.svg)]()
-[![Maintained by GitAuto AI](https://img.shields.io/badge/managed%20by-GitAuto%20AI-blue.svg)]()
+Static code metrics analyzer that scans directories, computes line metrics, and identifies complexity hotspots.
 
-Production-ready software service and data processing pipeline.
+## Target Complexity & Language
+- **Language:** python
+- **Complexity:** medium
 
-## Features
+## Problem Statement
+Engineering teams need fast, local repository analysis to audit comment ratios, blank lines, and file distribution.
 
-- **Typed Data Pipeline**: Robust domain models with typed dataclasses and runtime validation.
-- **Error Handling**: Strict validation preventing duplicate entries or malformed records.
-- **Filtering & Search**: O(1) key lookups and fast priority filtering.
-- **Export & Serialization**: Formatted JSON export for reporting and metrics telemetry.
-- **100% Test Coverage**: Comprehensive pytest test suite validating all edge cases and assertions.
+## Key Features
+- Multi-extension code file detection (.py, .js, .ts, .go, .rs)
+- Granular metric computation (total lines, blank lines, comments, code lines)
+- Complexity hotspot detection based on file length thresholds
+- Markdown summary report generator
 
-## Project Structure
+## Technology Stack
+- Python 3.12
+- Dataclasses
+- Pytest
 
-```
-my-git/
-├── app/
-│   ├── __init__.py
-│   └── main.py          # Core application & data pipeline logic
-├── tests/
-│   ├── __init__.py
-│   └── test_main.py     # Automated pytest test suite
-├── .gitignore           # Standard git exclusion rules
-└── README.md            # Project documentation & quickstart
-```
 
-## Quick Start
-
-### Run the Application
-
+## Installation & Setup
 ```bash
-python -m app.main
+python -m venv .venv
+source .venv/bin/activate  # Or .venv\Scripts\activate on Windows
+pip install -r requirements.txt
 ```
 
-### Run Unit Tests
-
+## Running Unit Tests
 ```bash
-pytest tests/ -v
+pytest -v
 ```
 
 ---
-*Generated, validated, and published with [GitAuto AI](https://github.com).*
+*Generated, verified in Docker sandbox, and published automatically by [GitAuto AI](https://github.com).*
