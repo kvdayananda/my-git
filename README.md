@@ -1,46 +1,37 @@
-# my-git
+# Sentient NLP Classification & Sentiment Engine
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![Tests](https://img.shields.io/badge/tests-7%20passed-success.svg)]()
-[![Maintained by GitAuto AI](https://img.shields.io/badge/managed%20by-GitAuto%20AI-blue.svg)]()
+Lexicon and token-frequency text classification engine with polarity scoring and intent categorization.
 
-Production-ready software service and data processing pipeline.
+## Target Complexity & Language
+- **Language:** python
+- **Complexity:** medium
 
-## Features
+## Problem Statement
+Automated pipelines need fast text classification and sentiment detection without heavy multi-gigabyte neural weight dependencies.
 
-- **Typed Data Pipeline**: Robust domain models with typed dataclasses and runtime validation.
-- **Error Handling**: Strict validation preventing duplicate entries or malformed records.
-- **Filtering & Search**: O(1) key lookups and fast priority filtering.
-- **Export & Serialization**: Formatted JSON export for reporting and metrics telemetry.
-- **100% Test Coverage**: Comprehensive pytest test suite validating all edge cases and assertions.
+## Key Features
+- N-gram tokenizer with stop-word suppression
+- Polarity score calculator (-1.0 to +1.0 scale)
+- Multi-class intent classifier (inquiry, bug_report, praise, complaint)
+- Batch text evaluation with confidence intervals
 
-## Project Structure
+## Technology Stack
+- Python 3.12
+- Math / Statistics
+- Pytest
 
-```
-my-git/
-├── app/
-│   ├── __init__.py
-│   └── main.py          # Core application & data pipeline logic
-├── tests/
-│   ├── __init__.py
-│   └── test_main.py     # Automated pytest test suite
-├── .gitignore           # Standard git exclusion rules
-└── README.md            # Project documentation & quickstart
-```
 
-## Quick Start
-
-### Run the Application
-
+## Installation & Setup
 ```bash
-python -m app.main
+python -m venv .venv
+source .venv/bin/activate  # Or .venv\Scripts\activate on Windows
+pip install -r requirements.txt
 ```
 
-### Run Unit Tests
-
+## Running Unit Tests
 ```bash
-pytest tests/ -v
+pytest -v
 ```
 
 ---
-*Generated, validated, and published with [GitAuto AI](https://github.com).*
+*Generated, verified in Docker sandbox, and published automatically by [GitAuto AI](https://github.com).*
