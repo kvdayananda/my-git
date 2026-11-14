@@ -1,15 +1,27 @@
-"""CommitGuard Main Application."""
-from app.core import validate_commit, ValidationResult
+"""Main Application Entry Point."""
+from app.core import MetricRecord, TelemetryRegistry
+
+registry = TelemetryRegistry()
 
 
-class CommitGuard:
-    @staticmethod
-    def check(msg: str) -> dict:
-        result = validate_commit(msg)
-        return {
-            "valid": result.is_valid,
-            "type": result.type,
-            "scope": result.scope,
-            "breaking": result.is_breaking,
-            "error": result.error,
-        }
+def ingest_payload(data: dict) -> dict:
+    rec = MetricRecord(
+        service_id=data["service_id"],
+        cpu_percent=float(data["cpu_percent"]),
+        memory_mb=float(data["memory_mb"]),
+        status=data.get("status", "healthy"),
+    )
+    registry.record_metric(rec)
+    return {
+        "status": "recorded",
+        "service_id": rec.service_id,
+        "average_cpu": registry.compute_average_cpu(rec.service_id),
+    }
+
+
+def get_health_status() -> dict:
+    return {
+        "status": "operational",
+        "total_metrics_recorded": registry.total_count(),
+        "overall_average_cpu": registry.compute_average_cpu(),
+    }

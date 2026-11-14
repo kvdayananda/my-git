@@ -1,48 +1,43 @@
-"""CommitGuard Core Engine."""
-import re
-from dataclasses import dataclass
-from typing import Optional
-
-ALLOWED_TYPES = {"feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert"}
-PATTERN = re.compile(r"^([a-z]+)(?:\(([a-zA-Z0-9_-]+)\))?(!)?:\s+(.+)$")
+"""Nexus Telemetry Core Engine."""
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Optional
 
 
 @dataclass
-class ValidationResult:
-    is_valid: bool
-    type: Optional[str] = None
-    scope: Optional[str] = None
-    is_breaking: bool = False
-    description: Optional[str] = None
-    error: Optional[str] = None
+class MetricRecord:
+    service_id: str
+    cpu_percent: float
+    memory_mb: float
+    status: str = "healthy"
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+    def validate(self) -> None:
+        if not self.service_id or not self.service_id.strip():
+            raise ValueError("service_id must be a non-empty string.")
+        if not (0.0 <= self.cpu_percent <= 100.0):
+            raise ValueError(f"cpu_percent must be between 0 and 100, got {self.cpu_percent}")
+        if self.memory_mb < 0:
+            raise ValueError("memory_mb must be non-negative.")
 
 
-def validate_commit(message: str) -> ValidationResult:
-    header = message.strip().splitlines()[0] if message.strip() else ""
-    if not header:
-        return ValidationResult(is_valid=False, error="Commit message is empty.")
+class TelemetryRegistry:
+    def __init__(self) -> None:
+        self._records: list[MetricRecord] = []
 
-    if len(header) > 72:
-        return ValidationResult(is_valid=False, error=f"Header exceeds 72 characters ({len(header)} chars).")
+    def record_metric(self, metric: MetricRecord) -> MetricRecord:
+        metric.validate()
+        self._records.append(metric)
+        return metric
 
-    match = PATTERN.match(header)
-    if not match:
-        return ValidationResult(is_valid=False, error="Does not match format: '<type>(<scope>): <description>'")
+    def get_service_metrics(self, service_id: str) -> list[MetricRecord]:
+        return [r for r in self._records if r.service_id == service_id]
 
-    commit_type, scope, breaking_marker, desc = match.groups()
-    if commit_type not in ALLOWED_TYPES:
-        return ValidationResult(is_valid=False, error=f"Invalid type '{commit_type}'. Allowed: {sorted(ALLOWED_TYPES)}")
+    def compute_average_cpu(self, service_id: Optional[str] = None) -> float:
+        matching = [r.cpu_percent for r in self._records if service_id is None or r.service_id == service_id]
+        if not matching:
+            return 0.0
+        return round(sum(matching) / len(matching), 2)
 
-    if desc[0].isupper():
-        return ValidationResult(is_valid=False, error="Description should start with a lowercase letter.")
-
-    if desc.endswith("."):
-        return ValidationResult(is_valid=False, error="Description should not end with a period.")
-
-    return ValidationResult(
-        is_valid=True,
-        type=commit_type,
-        scope=scope,
-        is_breaking=bool(breaking_marker),
-        description=desc,
-    )
+    def total_count(self) -> int:
+        return len(self._records)
