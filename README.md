@@ -1,23 +1,24 @@
-# CommitGuard Conventional Git & Hook Validator
+# Nexus REST API & Telemetry Engine v6
 
-Conventional commit format and git message linter ensuring clean semantic release versioning.
+High-performance modular REST API service featuring metric ingestion, health telemetry, and status reporting.
 
 ## Target Complexity & Language
 - **Language:** python
 - **Complexity:** medium
 
 ## Problem Statement
-Engineering repositories suffer from inconsistent commit messages which break automated changelog generators.
+Distributed microservices require an authenticated, low-overhead endpoint to aggregate periodic operational heartbeats and metrics.
 
 ## Key Features
-- Standard conventional commit type verification
-- Optional scope syntax parser (e.g., feat(auth): ...)
-- Subject line capitalization and length validation (<= 72 chars)
-- Breaking change marker detection (! or BREAKING CHANGE)
+- Payload ingestion with Pydantic validation
+- In-memory time-series metric registry with moving averages
+- System health and uptime telemetry endpoints
+- JSON format export and query filtering by service name
 
 ## Technology Stack
 - Python 3.12
-- Regex
+- FastAPI / Starlette
+- Pydantic
 - Pytest
 
 
