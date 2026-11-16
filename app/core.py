@@ -1,48 +1,47 @@
-"""CommitGuard Core Engine."""
-import re
+"""CodeLens Core Analyzer Engine."""
 from dataclasses import dataclass
-from typing import Optional
-
-ALLOWED_TYPES = {"feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert"}
-PATTERN = re.compile(r"^([a-z]+)(?:\(([a-zA-Z0-9_-]+)\))?(!)?:\s+(.+)$")
+from typing import Dict, List
 
 
 @dataclass
-class ValidationResult:
-    is_valid: bool
-    type: Optional[str] = None
-    scope: Optional[str] = None
-    is_breaking: bool = False
-    description: Optional[str] = None
-    error: Optional[str] = None
+class FileMetric:
+    path: str
+    total_lines: int
+    code_lines: int
+    comment_lines: int
+    blank_lines: int
 
 
-def validate_commit(message: str) -> ValidationResult:
-    header = message.strip().splitlines()[0] if message.strip() else ""
-    if not header:
-        return ValidationResult(is_valid=False, error="Commit message is empty.")
+def analyze_source_text(filename: str, text: str) -> FileMetric:
+    lines = text.splitlines()
+    total = len(lines)
+    code = 0
+    comment = 0
+    blank = 0
 
-    if len(header) > 72:
-        return ValidationResult(is_valid=False, error=f"Header exceeds 72 characters ({len(header)} chars).")
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            blank += 1
+        elif stripped.startswith(("#", "//", "/*", "*")):
+            comment += 1
+        else:
+            code += 1
 
-    match = PATTERN.match(header)
-    if not match:
-        return ValidationResult(is_valid=False, error="Does not match format: '<type>(<scope>): <description>'")
-
-    commit_type, scope, breaking_marker, desc = match.groups()
-    if commit_type not in ALLOWED_TYPES:
-        return ValidationResult(is_valid=False, error=f"Invalid type '{commit_type}'. Allowed: {sorted(ALLOWED_TYPES)}")
-
-    if desc[0].isupper():
-        return ValidationResult(is_valid=False, error="Description should start with a lowercase letter.")
-
-    if desc.endswith("."):
-        return ValidationResult(is_valid=False, error="Description should not end with a period.")
-
-    return ValidationResult(
-        is_valid=True,
-        type=commit_type,
-        scope=scope,
-        is_breaking=bool(breaking_marker),
-        description=desc,
+    return FileMetric(
+        path=filename,
+        total_lines=total,
+        code_lines=code,
+        comment_lines=comment,
+        blank_lines=blank,
     )
+
+
+def summarize_metrics(metrics: List[FileMetric]) -> Dict[str, int]:
+    return {
+        "files_analyzed": len(metrics),
+        "total_lines": sum(m.total_lines for m in metrics),
+        "code_lines": sum(m.code_lines for m in metrics),
+        "comment_lines": sum(m.comment_lines for m in metrics),
+        "blank_lines": sum(m.blank_lines for m in metrics),
+    }

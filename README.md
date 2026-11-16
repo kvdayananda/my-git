@@ -1,23 +1,23 @@
-# CommitGuard Conventional Git & Hook Validator
+# CodeLens Project Architecture & Metric Inspector v7
 
-Conventional commit format and git message linter ensuring clean semantic release versioning.
+Static code metrics analyzer that scans directories, computes line metrics, and identifies complexity hotspots.
 
 ## Target Complexity & Language
 - **Language:** python
 - **Complexity:** medium
 
 ## Problem Statement
-Engineering repositories suffer from inconsistent commit messages which break automated changelog generators.
+Engineering teams need fast, local repository analysis to audit comment ratios, blank lines, and file distribution.
 
 ## Key Features
-- Standard conventional commit type verification
-- Optional scope syntax parser (e.g., feat(auth): ...)
-- Subject line capitalization and length validation (<= 72 chars)
-- Breaking change marker detection (! or BREAKING CHANGE)
+- Multi-extension code file detection (.py, .js, .ts, .go, .rs)
+- Granular metric computation (total lines, blank lines, comments, code lines)
+- Complexity hotspot detection based on file length thresholds
+- Markdown summary report generator
 
 ## Technology Stack
 - Python 3.12
-- Regex
+- Dataclasses
 - Pytest
 
 
