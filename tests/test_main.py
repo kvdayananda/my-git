@@ -1,32 +1,29 @@
-"""Tests for CommitGuard Validator."""
-from app.core import validate_commit
-from app.main import CommitGuard
+"""Tests for CodeLens Inspector."""
+from app.core import analyze_source_text, summarize_metrics
+from app.main import CodeLensApp
 
 
-def test_valid_commits():
-    res1 = validate_commit("feat(auth): implement token rotation")
-    assert res1.is_valid is True
-    assert res1.type == "feat"
-    assert res1.scope == "auth"
+def test_analyze_source():
+    code = """# File header
+def add(a, b):
+    # Perform sum
+    return a + b
 
-    res2 = validate_commit("fix: resolve off-by-one index error")
-    assert res2.is_valid is True
-    assert res2.scope is None
-
-
-def test_invalid_commits():
-    assert validate_commit("feat: Implement user login").is_valid is False
-    assert validate_commit("fix: correct calculation.").is_valid is False
-    assert validate_commit("random: unexpected update").is_valid is False
+"""
+    m = analyze_source_text("calc.py", code)
+    assert m.total_lines == 5
+    assert m.comment_lines == 2
+    assert m.blank_lines == 1
+    assert m.code_lines == 2
 
 
-def test_breaking_change():
-    res = validate_commit("feat(api)!: remove deprecated v1 endpoints")
-    assert res.is_valid is True
-    assert res.is_breaking is True
+def test_summarize_metrics():
+    app = CodeLensApp()
+    app.scan_file("a.py", "x = 1\ny = 2")
+    app.scan_file("b.py", "# Comment\n\nz = 3")
+    report = app.get_report()
 
-
-def test_facade():
-    res = CommitGuard.check("docs(readme): add installation instructions")
-    assert res["valid"] is True
-    assert res["type"] == "docs"
+    assert report["summary"]["files_analyzed"] == 2
+    assert report["summary"]["code_lines"] == 3
+    assert report["summary"]["comment_lines"] == 1
+    assert report["summary"]["blank_lines"] == 1
