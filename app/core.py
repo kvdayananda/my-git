@@ -1,47 +1,44 @@
-"""CodeLens Core Analyzer Engine."""
-from dataclasses import dataclass
-from typing import Dict, List
+"""Sentient NLP Core Engine."""
+import re
+from typing import Dict, List, Tuple
+
+POSITIVE_LEXICON = {"great", "excellent", "fast", "love", "awesome", "good", "reliable", "easy", "clean"}
+NEGATIVE_LEXICON = {"bad", "slow", "error", "fail", "broken", "hate", "issue", "crash", "terrible", "bug"}
 
 
-@dataclass
-class FileMetric:
-    path: str
-    total_lines: int
-    code_lines: int
-    comment_lines: int
-    blank_lines: int
+def tokenize(text: str) -> List[str]:
+    return [w.lower() for w in re.findall(r"\b[a-zA-Z]{2,}\b", text)]
 
 
-def analyze_source_text(filename: str, text: str) -> FileMetric:
-    lines = text.splitlines()
-    total = len(lines)
-    code = 0
-    comment = 0
-    blank = 0
+def compute_sentiment(text: str) -> Tuple[float, str]:
+    tokens = tokenize(text)
+    if not tokens:
+        return 0.0, "neutral"
 
-    for line in lines:
-        stripped = line.strip()
-        if not stripped:
-            blank += 1
-        elif stripped.startswith(("#", "//", "/*", "*")):
-            comment += 1
-        else:
-            code += 1
+    pos_count = sum(1 for t in tokens if t in POSITIVE_LEXICON)
+    neg_count = sum(1 for t in tokens if t in NEGATIVE_LEXICON)
+    total = pos_count + neg_count
 
-    return FileMetric(
-        path=filename,
-        total_lines=total,
-        code_lines=code,
-        comment_lines=comment,
-        blank_lines=blank,
-    )
+    if total == 0:
+        return 0.0, "neutral"
+
+    score = round((pos_count - neg_count) / total, 3)
+    if score > 0.15:
+        label = "positive"
+    elif score < -0.15:
+        label = "negative"
+    else:
+        label = "neutral"
+
+    return score, label
 
 
-def summarize_metrics(metrics: List[FileMetric]) -> Dict[str, int]:
-    return {
-        "files_analyzed": len(metrics),
-        "total_lines": sum(m.total_lines for m in metrics),
-        "code_lines": sum(m.code_lines for m in metrics),
-        "comment_lines": sum(m.comment_lines for m in metrics),
-        "blank_lines": sum(m.blank_lines for m in metrics),
-    }
+def classify_intent(text: str) -> str:
+    tokens = set(tokenize(text))
+    if {"bug", "crash", "error", "fail", "broken"} & tokens:
+        return "bug_report"
+    if {"how", "why", "help", "question", "docs"} & tokens:
+        return "inquiry"
+    if {"love", "great", "thanks", "awesome"} & tokens:
+        return "praise"
+    return "general_feedback"

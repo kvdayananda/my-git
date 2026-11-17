@@ -1,29 +1,33 @@
-"""Tests for CodeLens Inspector."""
-from app.core import analyze_source_text, summarize_metrics
-from app.main import CodeLensApp
+"""Tests for Sentient NLP Engine."""
+from app.core import compute_sentiment, classify_intent
+from app.main import SentientAnalyzer
 
 
-def test_analyze_source():
-    code = """# File header
-def add(a, b):
-    # Perform sum
-    return a + b
-
-"""
-    m = analyze_source_text("calc.py", code)
-    assert m.total_lines == 5
-    assert m.comment_lines == 2
-    assert m.blank_lines == 1
-    assert m.code_lines == 2
+def test_positive_sentiment():
+    score, label = compute_sentiment("This tool is great, fast, and awesome!")
+    assert score > 0.0
+    assert label == "positive"
 
 
-def test_summarize_metrics():
-    app = CodeLensApp()
-    app.scan_file("a.py", "x = 1\ny = 2")
-    app.scan_file("b.py", "# Comment\n\nz = 3")
-    report = app.get_report()
+def test_negative_sentiment():
+    score, label = compute_sentiment("Encountered a bad bug and a terrible crash.")
+    assert score < 0.0
+    assert label == "negative"
 
-    assert report["summary"]["files_analyzed"] == 2
-    assert report["summary"]["code_lines"] == 3
-    assert report["summary"]["comment_lines"] == 1
-    assert report["summary"]["blank_lines"] == 1
+
+def test_neutral_sentiment():
+    score, label = compute_sentiment("The application received a data package.")
+    assert score == 0.0
+    assert label == "neutral"
+
+
+def test_intent_classification():
+    assert classify_intent("How do I configure the server?") == "inquiry"
+    assert classify_intent("Critical error on startup!") == "bug_report"
+    assert classify_intent("Thanks for the great release!") == "praise"
+
+
+def test_analyzer_facade():
+    res = SentientAnalyzer.process("Great work on delivering the awesome release!")
+    assert res["sentiment_label"] == "positive"
+    assert "sentiment_score" in res
