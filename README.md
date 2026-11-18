@@ -1,23 +1,23 @@
-# CodeLens Project Architecture & Metric Inspector v7
+# Sentient NLP Classification & Sentiment Engine v8
 
-Static code metrics analyzer that scans directories, computes line metrics, and identifies complexity hotspots.
+Lexicon and token-frequency text classification engine with polarity scoring and intent categorization.
 
 ## Target Complexity & Language
 - **Language:** python
 - **Complexity:** medium
 
 ## Problem Statement
-Engineering teams need fast, local repository analysis to audit comment ratios, blank lines, and file distribution.
+Automated pipelines need fast text classification and sentiment detection without heavy multi-gigabyte neural weight dependencies.
 
 ## Key Features
-- Multi-extension code file detection (.py, .js, .ts, .go, .rs)
-- Granular metric computation (total lines, blank lines, comments, code lines)
-- Complexity hotspot detection based on file length thresholds
-- Markdown summary report generator
+- N-gram tokenizer with stop-word suppression
+- Polarity score calculator (-1.0 to +1.0 scale)
+- Multi-class intent classifier (inquiry, bug_report, praise, complaint)
+- Batch text evaluation with confidence intervals
 
 ## Technology Stack
 - Python 3.12
-- Dataclasses
+- Math / Statistics
 - Pytest
 
 
